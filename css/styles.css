@@ -13,3 +13,19 @@
     position: absolute;
 
 }
+
+.enemy-ufo{
+    position: absolute;
+}
+
+.meteor-big{
+    position: absolute;
+}
+
+.meteor-small{
+    position: absolute;
+}
+
+.laser-red{
+    position: absolute;
+}

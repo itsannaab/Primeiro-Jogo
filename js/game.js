@@ -5,11 +5,18 @@
     const FPS = 100;
 
     const PROB_ENEMY_SHIP = 0.5;//probabilidade de inimigo aparecer num frame
+    const PROB_ENEMY_UFO = 0.3;
+    const PROB_METEOR_BIG = 0.1;
+    const PROB_METEOR_SMALL = 0.2;
 
-    let points, life;
+    let points, life,laser;
 
     let space,ship;
     let enemies = [];
+    let enemiesU = [];
+    let meteorB = [];
+    let meteorS = [];
+    let lasers = [];
 
     function init(){ //inicializa todos os elementos do jogo
         space = new Space();
@@ -23,6 +30,12 @@
         if (e.key === 'ArrowLeft') ship.mudaDirecao(-1);
         else if (e.key === 'ArrowRight') ship.mudaDirecao(1);
     }); 
+
+    //window.addEventListener("keydown", (e) => {
+    //    if(e.key === " "){ 
+    //        laser = new LaserRed();
+    //    }
+    //});
 
     class Space {
         constructor(){
@@ -60,11 +73,11 @@
         }
 
         move(){
-            if (this.direcao === 0)
-                this.element.style.left = `${parseInt(this.element.style.left) - 1}px`; //ship se aproxima da esquerda
+            if (this.direcao === 0 && parseInt(this.element.style.left) > 0) //limitacao borda
+                this.element.style.left = `${parseInt(this.element.style.left) - 2}px`; //ship se aproxima da esquerda
                 
-            if(this.direcao === 2)
-                this.element.style.left = `${parseInt(this.element.style.left) + 1}px`; //ship se afasta da esquerda
+            if(this.direcao === 2 && parseInt(this.element.style.left) < (TAMX - 100)) //limitacao borda 
+                this.element.style.left = `${parseInt(this.element.style.left) + 2}px`; //ship se afasta da esquerda
             
             space.move();
         }
@@ -90,6 +103,13 @@
             this.element = document.createElement("img");
             this.element.className = "enemy-ufo";
             this.element.src = "assets/enemyUFO.png";
+            this.element.style.top = "0px";
+            this.element.style.left = `${Math.floor(Math.random() * TAMX)}px`
+            space.element.appendChild(this.element);
+        }
+
+        move(){
+            this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; 
         }
     }
 
@@ -98,6 +118,13 @@
             this.element = document.createElement("img");
             this.element.className = "meteor-big";
             this.element.src = "assets/meteorBig.png";
+            this.element.style.top = "0px";
+            this.element.style.left = `${Math.floor(Math.random() * TAMX)}px`
+            space.element.appendChild(this.element);
+        }
+
+        move(){
+            this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; //faz o inimigo descer, incrementando o topo para se distanciar
         }
 
     }
@@ -107,15 +134,67 @@
             this.element = document.createElement("img");
             this.element.className = "meteor-small";
             this.element.src = "assets/meteorSmall.png";
+            this.element.style.top = "0px";
+            this.element.style.left = `${Math.floor(Math.random() * TAMX)}px`
+            space.element.appendChild(this.element);
+        }
+
+        move(){
+            this.element.style.top = `${parseInt(this.element.style.top) + 1}px`;
         }
     }
 
+    class LaserRed{
+        constructor(){
+            this.element = document.createElement("img");
+            this.element.className = "laser-red";
+            this.element.src = "assets/laserRed.png";
+            this.element.style.bottom = `${parseInt(ship.element.style.bottom + 77)}px`; //distancia da ship do bottom (20px) + tamanho altura ship (+- 77px)
+            this.element.style.left = `${parseInt(ship.element.style.left) +50 }px`
+            space.element.appendChild(this.element);
+        }
+
+        move(){
+            this.element.style.top = `${parseInt(this.element.style.bottom) + 1}px`;
+        }
+    }
+
+
     function run(){ //define o que vai acontecer no jogo, executa 100x por segundo
         const random_enemy_ship = Math.random() * 100; 
+        const random_enemy_ufo = Math.random() * 100; 
+        const random_meteor_big = Math.random() * 100; 
+        const random_meteor_small = Math.random() * 100; 
         if (random_enemy_ship <= PROB_ENEMY_SHIP) {
             enemies.push(new EnemyShip()); //1x a cada 200 vezes +- que a funcao for executada, cria inimigo
         }
+
+        if (random_enemy_ufo <= PROB_ENEMY_UFO) {
+            enemiesU.push(new EnemyUFO()); 
+        }
+
+        if(random_meteor_big <= PROB_METEOR_BIG){
+            meteorB.push(new MeteorBig());
+        }
+
+        if(random_meteor_small <= PROB_METEOR_SMALL){
+            meteorS.push(new MeteorSmall());
+        }
+
+        lasers.push(laser);
+
         enemies.forEach((e) => e.move()); //função para cada inimigo do array descer
+        enemiesU.forEach((e) => e.move());
+        meteorB.forEach((e) => e.move());
+        meteorS.forEach((e) => e.move());
+        //lasers.forEach((e) => e.move());
+
+
+        //remover elementos da dom
+        //if(enemies.indexOf(0).style.top > '801px'){
+        //    enemies.shift();
+        //}
+            
         ship.move();
     }
 
