@@ -6,12 +6,16 @@
 
     const PROB_ENEMY_SHIP = 0.5;//probabilidade de inimigo aparecer num frame
 
+    let points, life;
+
     let space,ship;
     let enemies = [];
 
     function init(){ //inicializa todos os elementos do jogo
         space = new Space();
         ship = new Ship();
+        points = 0;
+        life = 3;
         const interval = window.setInterval(run, 1000 / FPS) //looping infinito, funcao executada a cada x milisegundo (FPS)
     } 
 
@@ -69,7 +73,7 @@
     class EnemyShip {
         constructor(){
             this.element = document.createElement("img");
-            this.element.className = "enemy=ship"; //criada classe, nao ID, pois sao muitos objetos de inimigo
+            this.element.className = "enemy-ship"; //criada classe, nao ID, pois sao muitos objetos de inimigo
             this.element.src = "assets/enemyShip.png";
             this.element.style.top = "0px";
             this.element.style.left = `${Math.floor(Math.random() * TAMX)}px`; //gerar uma posicao aleatoria entre 0 e TAMX
@@ -78,6 +82,31 @@
 
         move(){
             this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; //faz o inimigo descer, incrementando o topo para se distanciar
+        }
+    }
+
+    class EnemyUFO{
+        constructor(){
+            this.element = document.createElement("img");
+            this.element.className = "enemy-ufo";
+            this.element.src = "assets/enemyUFO.png";
+        }
+    }
+
+    class MeteorBig{
+        constructor(){
+            this.element = document.createElement("img");
+            this.element.className = "meteor-big";
+            this.element.src = "assets/meteorBig.png";
+        }
+
+    }
+
+    class MeteorSmall{
+        constructor(){
+            this.element = document.createElement("img");
+            this.element.className = "meteor-small";
+            this.element.src = "assets/meteorSmall.png";
         }
     }
 
