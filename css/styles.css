@@ -2,7 +2,7 @@
     border: 1px solid black;
     background-image: url("../assets/Background/starBackground.png");
     position: relative;
-    overflow: hidden;
+    /*overflow: hidden;*/
 }
 
 #ship{

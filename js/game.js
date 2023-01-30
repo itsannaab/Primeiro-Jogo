@@ -31,11 +31,12 @@
         else if (e.key === 'ArrowRight') ship.mudaDirecao(1);
     }); 
 
-    //window.addEventListener("keydown", (e) => {
-    //    if(e.key === " "){ 
-    //        laser = new LaserRed();
-    //    }
-    //});
+    window.addEventListener("keydown", (e) => {
+        if(e.key === " "){ 
+            laser = new LaserRed();
+            lasers.push(laser);
+        }
+    });
 
     class Space {
         constructor(){
@@ -149,13 +150,21 @@
             this.element = document.createElement("img");
             this.element.className = "laser-red";
             this.element.src = "assets/laserRed.png";
-            this.element.style.bottom = `${parseInt(ship.element.style.bottom + 77)}px`; //distancia da ship do bottom (20px) + tamanho altura ship (+- 77px)
-            this.element.style.left = `${parseInt(ship.element.style.left) +50 }px`
+            this.element.style.bottom = `${parseInt(ship.element.style.bottom )+77}px`; 
+            this.element.style.left = `${parseInt(ship.element.style.left) +50}px`
             space.element.appendChild(this.element);
         }
 
         move(){
-            this.element.style.top = `${parseInt(this.element.style.bottom) + 1}px`;
+            this.element.style.bottom = `${parseInt(this.element.style.bottom) + 1}px`;
+
+           // enemies.forEach(enemy => {
+           //     for(let x in enemy){
+           //         if((parseInt(this.element.style.bottom) + 10) >= parseInt(x.element.style.top) - 99){
+
+           //         }
+           //     }
+           // });
         }
     }
 
@@ -181,17 +190,17 @@
             meteorS.push(new MeteorSmall());
         }
 
-        lasers.push(laser);
 
         enemies.forEach((e) => e.move()); //função para cada inimigo do array descer
         enemiesU.forEach((e) => e.move());
         meteorB.forEach((e) => e.move());
         meteorS.forEach((e) => e.move());
-        //lasers.forEach((e) => e.move());
+        lasers.forEach((e) => e.move());
 
 
-        //remover elementos da dom
-        //if(enemies.indexOf(0).style.top > '801px'){
+        //remover elementos da dom -> problema
+        //x = enemies.indexOf(0);
+        //if(parseInt(x.style.top) > 801 && parseInt(x.style.left > 601)){
         //    enemies.shift();
         //}
             
