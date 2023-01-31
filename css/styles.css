@@ -29,3 +29,7 @@
 .laser-red{
     position: absolute;
 }
+
+.life{
+    position: relative;
+}

@@ -9,7 +9,7 @@
     const PROB_METEOR_BIG = 0.1;
     const PROB_METEOR_SMALL = 0.2;
 
-    let points, life,laser;
+    let points, vida, laser, life, interval;
 
     let space,ship;
     let enemies = [];
@@ -17,13 +17,19 @@
     let meteorB = [];
     let meteorS = [];
     let lasers = [];
+    let lifes = [];
+
+    let iniciar = false;
 
     function init(){ //inicializa todos os elementos do jogo
         space = new Space();
         ship = new Ship();
         points = 0;
-        life = 3;
-        const interval = window.setInterval(run, 1000 / FPS) //looping infinito, funcao executada a cada x milisegundo (FPS)
+        
+        for(let x = 0; x < 3; x++){
+            life = new Life();
+            lifes.push(life);
+        }
     } 
 
     window.addEventListener("keydown", (e) => { //keydown -> ao pressionar teclado o evento é disparado
@@ -33,9 +39,27 @@
 
     window.addEventListener("keydown", (e) => {
         if(e.key === " "){ 
-            laser = new LaserRed();
-            lasers.push(laser);
+            if(!iniciar){
+                interval = window.setInterval(run, 1000 / FPS); //looping infinito, funcao executada a cada x milisegundo (FPS)
+                iniciar = true;
+            }
+            else{
+                laser = new LaserRed();
+                lasers.push(laser);
+            }
         }
+
+        if((e.key === "p") || (e.key === "P")){
+            if(iniciar){
+                clearInterval(interval);
+                iniciar = false;
+            }
+            else{
+                interval = window.setInterval(run, 1000 / FPS);
+                iniciar = true;
+            }
+        }
+        
     });
 
     class Space {
@@ -82,6 +106,11 @@
             
             space.move();
         }
+
+        colisao(enemy){
+            return enemy.colisao(this);
+        }
+
     }
 
     class EnemyShip {
@@ -97,6 +126,14 @@
         move(){
             this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; //faz o inimigo descer, incrementando o topo para se distanciar
         }
+
+        colisao(ship){
+            let distX = this.element.offsetLeft - ship.element.offsetLeft;
+            let distY = this.element.offsetTop - ship.element.offsetTop;
+            let distancia = Math.sqrt(distX * distX + distY * distY);
+            let soma = this.element.offsetWidth / 2 + ship.element.offsetWidth / 2;
+            return distancia < soma;   
+        }
     }
 
     class EnemyUFO{
@@ -111,6 +148,15 @@
 
         move(){
             this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; 
+        }
+
+        colisao(ship){
+            let distX = this.element.offsetLeft - ship.element.offsetLeft;
+            let distY = this.element.offsetTop - ship.element.offsetTop;
+            let distancia = Math.sqrt(distX * distX + distY * distY);
+            let soma = this.element.offsetWidth / 2 + ship.element.offsetWidth / 2;
+            return distancia < soma;
+              
         }
     }
 
@@ -128,6 +174,15 @@
             this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; //faz o inimigo descer, incrementando o topo para se distanciar
         }
 
+        colisao(ship){
+            let distX = this.element.offsetLeft - ship.element.offsetLeft;
+            let distY = this.element.offsetTop - ship.element.offsetTop;
+            let distancia = Math.sqrt(distX * distX + distY * distY);
+            let soma = this.element.offsetWidth / 2 + ship.element.offsetWidth / 2;
+            return distancia < soma;
+              
+        }
+
     }
 
     class MeteorSmall{
@@ -142,6 +197,22 @@
 
         move(){
             this.element.style.top = `${parseInt(this.element.style.top) + 1}px`;
+        }
+
+        colisao(ship){
+            let distX = this.element.offsetLeft - ship.element.offsetLeft;
+            let distY = this.element.offsetTop - ship.element.offsetTop;
+            let distancia = Math.sqrt(distX * distX + distY * distY);
+            let soma = this.element.offsetWidth / 2 + ship.element.offsetWidth / 2;
+            return distancia < soma;  
+        }
+
+        tiro(laser){
+            let distX = this.element.offsetLeft - laser.element.offsetLeft;
+            let distY = this.element.offsetTop - laser.element.offsetTop;
+            let distancia = Math.sqrt(distX * distX + distY * distY);
+            let soma = this.element.offsetWidth / 2 + laser.element.offsetWidth / 2;
+            return distancia < soma;  
         }
     }
 
@@ -158,22 +229,31 @@
         move(){
             this.element.style.bottom = `${parseInt(this.element.style.bottom) + 1}px`;
 
-           // enemies.forEach(enemy => {
-           //     for(let x in enemy){
-           //         if((parseInt(this.element.style.bottom) + 10) >= parseInt(x.element.style.top) - 99){
+            //funcao de colisao para deletar laser e inimigo acertado - problema
+        }
 
-           //         }
-           //     }
-           // });
+        colisao(enemy){
+            return enemy.colisao(this);
         }
     }
 
+    class Life{
+        constructor(){
+            this.element = document.createElement("img");
+            this.element.className = "life";
+            this.element.src = "assets/life.png";
+            this.element.style.top = "0px";
+            this.element.style.left = "400px";
+            space.element.appendChild(this.element);
+        }
+
+    }
 
     function run(){ //define o que vai acontecer no jogo, executa 100x por segundo
         const random_enemy_ship = Math.random() * 100; 
-        const random_enemy_ufo = Math.random() * 100; 
-        const random_meteor_big = Math.random() * 100; 
-        const random_meteor_small = Math.random() * 100; 
+        const random_enemy_ufo = Math.random() * 95; 
+        const random_meteor_big = Math.random() * 80; 
+        const random_meteor_small = Math.random() * 80; 
         if (random_enemy_ship <= PROB_ENEMY_SHIP) {
             enemies.push(new EnemyShip()); //1x a cada 200 vezes +- que a funcao for executada, cria inimigo
         }
@@ -196,16 +276,54 @@
         meteorB.forEach((e) => e.move());
         meteorS.forEach((e) => e.move());
         lasers.forEach((e) => e.move());
+    
+    
+       for (let i = 0; i < enemies.length; i++) { //funcao de colisao com os inimigos
+            if (ship.colisao(enemies[i])) {
+              space.element.removeChild(enemies[i].element);
+              lifes.pop().element;
 
+              //if(lifes.lenght == 0){
+              //  clearInterval(interval);
+              //}
+            }
+        }
 
-        //remover elementos da dom -> problema
-        //x = enemies.indexOf(0);
-        //if(parseInt(x.style.top) > 801 && parseInt(x.style.left > 601)){
-        //    enemies.shift();
-        //}
-            
+        for (let i = 0; i < enemiesU.length; i++) {
+            if (ship.colisao(enemiesU[i])) {
+              space.element.removeChild(enemiesU[i].element);
+            }
+        }
+
+        for (let i = 0; i < meteorB.length; i++) {
+            if (ship.colisao(meteorB[i])) {
+              space.element.removeChild(meteorB[i].element);
+            }
+        }
+
+        for (let i = 0; i < meteorS.length; i++) {
+            if (ship.colisao(meteorS[i])) {
+              space.element.removeChild(meteorS[i].element);
+            }
+        }
+
+        //funcao para atirar
+        
+        for (let i = 0; i < enemies.length; i++) {
+            if (laser.colisao(enemies[i])) {
+              space.element.removeChild(meteorS[i].element);
+            }
+        }
+        
+    
+        /*remover elementos da dom -> problema
+
+        */
         ship.move();
     }
 
-    init()
+
+        
+
+    init();
 })(); //funcao imediata
