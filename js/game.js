@@ -9,21 +9,27 @@
     const PROB_METEOR_BIG = 0.1;
     const PROB_METEOR_SMALL = 0.2;
 
-    let life, interval, laser, space, ship;
+    let enemy_l = ["assets/enemyShip.png", "assets/meteorBig.png", "assets/meteorSmall.png", "assets/enemyUFO.png"];
+    let life, interval, laser, space, ship, inicio, restartB, score, aumenta,speed,vmin,vmax;
     let enemies = [];
     let enemiesU = [];
     let meteorB = [];
     let meteorS = [];
     let lasers = [];
     let lifes = [];
-    let score = "000000"
-
     let iniciar = false;
 
     function init(){ //inicializa todos os elementos do jogo
+        vmin = 1;
+        vmax = 4;
+        score = "000000"
+        tempo = setInterval(aumentaVel, 60000);
+        aumenta = 1;
         space = new Space();
         ship = new Ship();
-        ponto = new Pontuacao();
+        ponto = new Score();
+        inicio = new Inicio();
+       
         
         for(let x = 0; x < 3; x++){
             life = new Life();
@@ -31,33 +37,45 @@
         }
     } 
 
+    function aumentaVel(){
+        vmin += aumenta;
+        vmax += aumenta;
+    }
+
     window.addEventListener("keydown", (e) => { //keydown -> ao pressionar teclado o evento é disparado
         if (e.key === 'ArrowLeft') ship.mudaDirecao(-1);
         else if (e.key === 'ArrowRight') ship.mudaDirecao(1);
     }); 
 
     window.addEventListener("keydown", (e) => {
-        if(e.key === " "){ 
-            if(!iniciar){
-                interval = window.setInterval(run, 1000 / FPS); //looping infinito, funcao executada a cada x milisegundo (FPS)
-                iniciar = true;
-            }
-            else{
-                laser = new LaserRed();
-                lasers.push(laser);
+        if(!restartB){
+            if(e.key === " "){ 
+                if(!iniciar){
+                    interval = window.setInterval(run, 1000 / FPS); //looping infinito, funcao executada a cada x milisegundo (FPS)
+                    //inicio.remove();
+                    space.element.removeChild(inicio.element);
+                    iniciar = true;
+                }
+                else{
+                    laser = new LaserRed();
+                    lasers.push(laser);
+                }
             }
         }
 
-        if((e.key === "p") || (e.key === "P")){
-            if(iniciar){
-                clearInterval(interval);
-                iniciar = false;
-            }
-            else{
-                interval = window.setInterval(run, 1000 / FPS);
-                iniciar = true;
+        if(!restartB){
+            if((e.key === "p") || (e.key === "P")){
+                if(iniciar){
+                    clearInterval(interval);
+                    iniciar = false;
+                }
+                else{
+                    interval = window.setInterval(run, 1000 / FPS);
+                    iniciar = true;
+                }
             }
         }
+        
         
     });
 
@@ -98,10 +116,10 @@
 
         move(){
             if (this.direcao === 0 && parseInt(this.element.style.left) > 0) //limitacao borda
-                this.element.style.left = `${parseInt(this.element.style.left) - 2}px`; //ship se aproxima da esquerda
+                this.element.style.left = `${parseInt(this.element.style.left) - 3}px`; //ship se aproxima da esquerda
                 
             if(this.direcao === 2 && parseInt(this.element.style.left) < (TAMX - 100)) //limitacao borda 
-                this.element.style.left = `${parseInt(this.element.style.left) + 2}px`; //ship se afasta da esquerda
+                this.element.style.left = `${parseInt(this.element.style.left) + 3}px`; //ship se afasta da esquerda
             
             space.move();
         }
@@ -123,10 +141,11 @@
         }
 
         move(){
-            this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; //faz o inimigo descer, incrementando o topo para se distanciar
+            speed = Math.floor(Math.random() * (vmax - vmin + 1)) + vmin;
+            this.element.style.top = `${parseInt(this.element.style.top) + speed}px`; //faz o inimigo descer, incrementando o topo para se distanciar
         }
 
-        
+        //colisao com nave
         colisao(ship){
             let distX = this.element.offsetLeft - ship.element.offsetLeft;
             let distY = this.element.offsetTop - ship.element.offsetTop;
@@ -135,17 +154,7 @@
             return distancia < soma;   
         }
 
-        /*
-        tiro(laser){
-            return(
-                laser.element.offsetLeft + laser.element.offsetWidth > this.element.offsetLeft &&
-                laser.element.offsetLeft < this.element.offsetLeft + this.element.offsetWidth &&
-                laser.element.offsetTop < this.element.offsetTop + laser.element.offsetHeight &&
-                laser.element.offsetTop + laser.element.offsetHeight > this.element.offsetTop
-            );
-        }
-        */
-
+        //colisao com laser
         tiro(laser){
             let distX = this.element.offsetLeft - laser.element.offsetLeft;
             let distY = this.element.offsetTop - laser.element.offsetTop;
@@ -163,11 +172,13 @@
             this.element.src = "assets/enemyUFO.png";
             this.element.style.top = "0px";
             this.element.style.left = `${Math.floor(Math.random() * TAMX)}px`
+            this.vel = Math.floor(Math.random() * (vmax - vmin + 1)) + vmin;
             space.element.appendChild(this.element);
         }
 
         move(){
-            this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; 
+            speed = Math.floor(Math.random() * (vmax - vmin + 1)) + vmin;
+            this.element.style.top = `${parseInt(this.element.style.top) + speed}px`; 
         }
 
         colisao(ship){
@@ -195,11 +206,13 @@
             this.element.src = "assets/meteorBig.png";
             this.element.style.top = "0px";
             this.element.style.left = `${Math.floor(Math.random() * TAMX)}px`
+            this.vel = Math.floor(Math.random() * (vmax - vmin + 1)) + vmin;
             space.element.appendChild(this.element);
         }
 
         move(){
-            this.element.style.top = `${parseInt(this.element.style.top) + 1}px`; //faz o inimigo descer, incrementando o topo para se distanciar
+            speed = Math.floor(Math.random() * (vmax - vmin + 1)) + vmin;
+            this.element.style.top = `${parseInt(this.element.style.top) + speed}px`; //faz o inimigo descer, incrementando o topo para se distanciar
         }
 
         colisao(ship){
@@ -231,7 +244,8 @@
         }
 
         move(){
-            this.element.style.top = `${parseInt(this.element.style.top) + 1}px`;
+            speed = Math.floor(Math.random() * (vmax - vmin + 1)) + vmin;
+            this.element.style.top = `${parseInt(this.element.style.top) + speed}px`;
         }
 
         colisao(ship){
@@ -243,16 +257,6 @@
         }
 
         //colisao com laser
-        /*
-        tiro(laser){
-            return(
-                laser.element.offsetLeft + laser.element.offsetWidth > this.element.offsetLeft &&
-                laser.element.offsetLeft < this.element.offsetLeft + this.element.offsetWidth &&
-                laser.element.offsetTop < this.element.offsetTop + laser.element.offsetHeight &&
-                laser.element.offsetTop + laser.element.offsetHeight > this.element.offsetTop
-            );
-        }*/
-
         tiro(laser){
             let distX = this.element.offsetLeft - laser.element.offsetLeft;
             let distY = this.element.offsetTop - laser.element.offsetTop;
@@ -274,9 +278,9 @@
         }
 
         move(){
-            this.element.style.bottom = `${parseInt(this.element.style.bottom) + 1}px`;
+            this.element.style.bottom = `${parseInt(this.element.style.bottom) + 2}px`;
 
-            //funcao de colisao para deletar laser e inimigo acertado - problema
+
         }
 
         colisao(enemy){
@@ -296,7 +300,7 @@
 
     }
 
-    class Pontuacao{
+    class Score{
         constructor(){
             this.element = document.createElement("p1");
             this.element.innerText = score;
@@ -305,23 +309,41 @@
         }
 
         incrementa(enemy){
-            let scoreInt = parseInt(score);
-            switch (enemy.element.src) {
-                case src_list[0]:
-                  scoreInt += 50;
-                  break;
-                case src_list[1]:
-                  scoreInt += 10;
-                  break;
-                case src_list[2]:
-                  scoreInt += 100;
-                  break;
-                case src_list[3]:
-                  scoreInt += 20;
-                  break;
-              }
-              score = scoreInt.toString().padStart(6, "0");
-              this.element.innerText = score;    
+            let pts = parseInt(score);
+            if (enemy.element.src.includes(enemy_l[0])) {
+                pts += 50;
+            } else if (enemy.element.src.includes(enemy_l[1])) {
+                pts += 10;
+            } else if (enemy.element.src.includes(enemy_l[2])) {
+                pts += 100;
+            } else if (enemy.element.src.includes(enemy_l[3])) {
+                pts += 20;
+            }
+            score = pts.toString().padStart(6, "0");
+            this.element.innerText = score;  
+        }
+    }
+
+    class Restart{
+        constructor(){
+            this.element = document.createElement("img");
+            this.element.className = "restart";
+            this.element.src = "assets/restartButton.png"; //criação autoral hehe
+            this.element.style.top = "400px";
+            this.element.style.left = "210px";
+            this.element.addEventListener("click", removeElemento);
+            space.element.appendChild(this.element);
+        }
+    }
+
+    class Inicio{
+        constructor(){
+            this.element = document.createElement("img");
+            this.element.className = "inicio";
+            this.element.src = "assets/inicioGame.png"; //criação autoral hehe
+            this.element.style.top = "100px";
+            this.element.style.left = "-200px";
+            space.element.appendChild(this.element);
         }
     }
 
@@ -332,6 +354,38 @@
             lista[index].element.remove();
             lista.splice(index, 1);
         }
+    }
+
+    function gameOver() {
+        if(lifes.length == 0){
+            clearInterval(interval);
+            iniciar= false;
+            restartB = new Restart();
+        }
+      }  
+
+    function removeElemento(){
+        enemies.forEach((e) => e.element.remove()); //função para cada inimigo do array descer
+        enemiesU.forEach((e) =>e.element.remove());
+        meteorB.forEach((e) => e.element.remove())
+        meteorS.forEach((e) => e.element.remove());
+        lasers.forEach((e) => e.element.remove());
+        enemies = [];
+        enemiesU = [];
+        meteorB = [];
+        meteorS = [];
+        lasers = [];
+        vmin = 1;
+        vmax = 4;
+        restartB.element.remove();
+        ponto.element.remove();
+       
+        restartB = false;
+
+        init();
+        space.element.removeChild(inicio.element);
+        interval = window.setInterval(run, 1000 / FPS);
+        iniciar = true;
     }
 
     function run(){ //define o que vai acontecer no jogo, executa 100x por segundo
@@ -366,25 +420,28 @@
        for (let i = 0; i < enemies.length; i++) { //funcao de colisao com os inimigos
             if (ship.colisao(enemies[i])) {
               space.element.removeChild(enemies[i].element);
-              //lifes.pop().element;
+              space.element.removeChild(lifes.pop().element);
             }
         }
 
         for (let i = 0; i < enemiesU.length; i++) {
             if (ship.colisao(enemiesU[i])) {
               space.element.removeChild(enemiesU[i].element);
+              space.element.removeChild(lifes.pop().element);
             }
         }
 
         for (let i = 0; i < meteorB.length; i++) {
             if (ship.colisao(meteorB[i])) {
               space.element.removeChild(meteorB[i].element);
+              space.element.removeChild(lifes.pop().element);
             }
         }
 
         for (let i = 0; i < meteorS.length; i++) {
             if (ship.colisao(meteorS[i])) {
               space.element.removeChild(meteorS[i].element);
+              space.element.removeChild(lifes.pop().element);
             }
         }
 
@@ -395,7 +452,7 @@
                 if (lasers[j].colisao(enemies[i])) {
                     space.element.removeChild(enemies[i].element);
                     space.element.removeChild(lasers[j].element);
-                    ponto.incrementa(enemies[i].element);
+                    ponto.incrementa(enemies[i]);
                 }
             }
         }
@@ -405,7 +462,7 @@
                 if (lasers[j].colisao(enemiesU[i])) {
                     space.element.removeChild(enemiesU[i].element);
                     space.element.removeChild(lasers[j].element);
-                    ponto.incrementa(enemiesU[i].element);
+                    ponto.incrementa(enemiesU[i]);
                 }
             }   
         }
@@ -415,7 +472,7 @@
                 if (lasers[j].colisao(meteorB[i])) {
                     space.element.removeChild(meteorB[i].element);
                     space.element.removeChild(lasers[j].element);
-                    ponto.incrementa(meteorB[i].element);
+                    ponto.incrementa(meteorB[i]);
                 }
             }
         }
@@ -425,7 +482,7 @@
                 if (lasers[j].colisao(meteorS[i])) {
                     space.element.removeChild(meteorS[i].element);
                     space.element.removeChild(lasers[j].element);
-                    ponto.incrementa(meteorS[i].element);
+                    ponto.incrementa(meteorS[i]);
                 }
             }
         }
@@ -458,14 +515,14 @@
 
         //funcao para remover os lasers quando eles saem da dom
         for(let i = 0; i < lasers.length; i++){
-            if(parseInt(lasers[i].element.style.top) < 0){
+            if(parseInt(lasers[i].element.y) < 0){
                 //space.element.removeChild(lasers[i].element);
                 lasers[i].element.remove();
                 lasers.splice(i, 1);
                 i--;
             }
         }
-
+        gameOver();
         ship.move();
     }
 
